@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 public class HTTPClient {
@@ -25,7 +26,6 @@ public class HTTPClient {
 
 
     public static void main(String[] args) {
-
         System.out.println("client is requesting ... ");
         try {
             Socket socket = new Socket(SERVER_ADDR, PORT);
@@ -34,36 +34,42 @@ public class HTTPClient {
 
             // generate a HTTP request a print writer, handy to handle output stream
             PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(dataOutputStream, StandardCharsets.ISO_8859_1));
-            printWriter.print("GET / HTTP/1.1" + CRLF);
-            printWriter.print("Host: " + SERVER_ADDR + CRLF);
-            printWriter.print("Connection: close" + CRLF);
-            printWriter.print("Accept: */*" + EOH);
-            printWriter.flush();
+            //printWriter.print("GET / HTTP/1.1" + CRLF);
+            //printWriter.print("Host: " + SERVER_ADDR + CRLF);
+            //printWriter.print("Connection: close" + CRLF);
+            //printWriter.print("Accept: */*" + EOH);
+            //printWriter.flush();
 
             // TODO: receive the feedback
 
-            //Following code is some stuff from project 1 with slight edits
+            //get path information
+            currentPath = Paths.get("");
+            currentPath = currentPath.resolve("client_folder");
+            currentDirectory = currentPath.toString();
+
             Scanner scanner = new Scanner(System.in);
             while(true) {
-                String fileName = "";
-                // Gets the ip address request from the user
-                String ipAddress = scanner.next();
+
+                String fileName;
+                // Gets the request from the user
+                String message = scanner.nextLine().trim();
+                Scanner messageReader = new Scanner(message);
+                // Gets the ip address from the user
+                String ipAddress = messageReader.next();
                 // Sends the ip address to the Server
-                dataOutputStream.writeUTF(ipAddress);
+                dataOutputStream.writeUTF(ipAddress + "\n");
 
-                // Gets the filename if there is one
-                if (scanner.hasNext()) {
-                    fileName = scanner.next();
-                }
-
-                if (!fileName.equals(""))   {
-                    // Get the index.html file
+                // if there is no file name specified it is set to "index.html"
+                if (messageReader.hasNext()) {
+                    fileName = messageReader.next();
                 }
                 else {
-                    // Get the specified file
+                    fileName = "index.html";
                 }
+                // Sends the file name to the Server
+                dataOutputStream.writeUTF(fileName + "\n");
 
-                // Probably will want to use this (and can probably get rid of the if/else
+
                 numBytes = dataInputStream.readInt();
                 if(numBytes != -1) {
                     byte[] fileContents = new byte[numBytes];
@@ -74,16 +80,16 @@ public class HTTPClient {
                     FileOutputStream fileOutputStream = new FileOutputStream(pathToFile);
 
                     fileOutputStream.write(fileContents, 0, numBytes);
-                    printWriter.print(dataInputStream.readUTF());
-                } else {
-                    printWriter.print(fileName + " does not exist.");
+
+
+                    System.out.println("Saved file: " + fileName);
+                }
+                else {
+                        System.out.println(fileName + " does not exist.");
                 }
 
-
-
-
-                System.out.println("After sending the request, wait for response: ");
-                printWriter.close();
+                //System.out.println("After sending the request, wait for response: ");
+                //printWriter.close();
 
             }
 

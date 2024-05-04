@@ -60,11 +60,23 @@ public class HTTPServer {
                 // generate a HTTP request a print writer, handy to handle output stream
 
                 //gets the ip address from the input stream
+                System.out.println("got here1");
+                String randomStringThatHasToBeHereToMakeItWork = bufferedReader.readLine().trim();
                 String ipAddress = bufferedReader.readLine().trim(); //WILL BE NEEDED FOR PARTS 2 AND 3
+                System.out.println("got here2");
+                System.out.println(ipAddress);
+                System.out.println("got here3");
                 //gets the file name from the input stream
                 String fileName = bufferedReader.readLine().trim();
+                System.out.println("got here");
+                System.out.println(fileName);
+                System.out.println("got here too");
+                //fileName = "test";
+                System.out.println(fileName);
                 //contents from the file stored
                 byte[] fileContents = get(fileName);
+
+                System.out.println(pathToFolder.toAbsolutePath().resolve(fileName).toString());
 
                 // If numbytes is not -1 then the file has contents
                 if (numBytes != -1) {

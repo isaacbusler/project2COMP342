@@ -70,23 +70,35 @@ public class HTTPClient {
                 printWriter.print(fileName + EOH);
                 printWriter.flush();
 
+                // Separates the file name from the file path provided (should there be one)
+                String fileNameOnly = "";
+                char[] fileNameChars = new char[fileName.length()];
+                for (int i = 0; i < fileName.length(); i++) {
+                    fileNameChars[i] = fileName.charAt(i);
+                }
+                for (char i : fileNameChars)    {
+                    fileNameOnly = fileNameOnly + i;
+                    if (i == '/')   {
+                        fileNameOnly = "";
+                    }
+                }
 
                 numBytes = dataInputStream.readInt();
                 if(numBytes != -1) {
                     byte[] fileContents = new byte[numBytes];
                     dataInputStream.read(fileContents, 0, numBytes);
 
-                    String pathToFile = currentPath.toAbsolutePath().resolve(fileName).toString();
+                    String pathToFile = currentPath.toAbsolutePath().resolve(fileNameOnly).toString();
 
                     FileOutputStream fileOutputStream = new FileOutputStream(pathToFile);
 
                     fileOutputStream.write(fileContents, 0, numBytes);
 
 
-                    System.out.println("Saved file: " + fileName);
+                    System.out.println("Saved file: " + fileNameOnly);
                 }
                 else {
-                        System.out.println(fileName + " does not exist.");
+                    System.out.println("Error: HTTP/1.1 404 Not Found");
                 }
 
                 //System.out.println("After sending the request, wait for response: ");

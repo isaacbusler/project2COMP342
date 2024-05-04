@@ -57,7 +57,7 @@ public class HTTPClient {
                 // Gets the ip address from the user
                 String ipAddress = messageReader.next();
                 // Sends the ip address to the Server
-                dataOutputStream.writeUTF(ipAddress + "\n");
+                printWriter.print(ipAddress + CRLF);
 
                 // if there is no file name specified it is set to "index.html"
                 if (messageReader.hasNext()) {
@@ -67,7 +67,8 @@ public class HTTPClient {
                     fileName = "index.html";
                 }
                 // Sends the file name to the Server
-                dataOutputStream.writeUTF(fileName + "\n");
+                printWriter.print(fileName + EOH);
+                printWriter.flush();
 
 
                 numBytes = dataInputStream.readInt();

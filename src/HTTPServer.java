@@ -88,12 +88,15 @@ public class HTTPServer {
 
                     // Write the contents of the file to the new file
                     //dataOutputStream.writeInt(numBytes);
-                    dataOutputStream.writeUTF("HTTP/1.1 200 OK" + CRLF);
-                    dataOutputStream.writeUTF("Content-Length:" + fileContents.length + CRLF);
-                    dataOutputStream.writeUTF("Content-Type: " + "text/html" + CRLF + EOH);
-                    dataOutputStream.flush();
-                    dataOutputStream.write(fileContents, 0, numBytes);
+                    PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(dataOutputStream, StandardCharsets.ISO_8859_1));
+                    printWriter.write("HTTP/1.1 200 OK" + CRLF);
+                    printWriter.write("Content-Length:" + fileContents.length + CRLF);
+                    printWriter.write("Content-Type: " + "text/html" + CRLF + EOH);
+                    String fileContentsString = new String(fileContents, StandardCharsets.ISO_8859_1);
+                    printWriter.write(fileContentsString);
                     //dataOutputStream.writeUTF(CRLF + EOH);
+
+                    printWriter.flush();
                     // Otherwise return -1 to tell the client that the file doesn't exist
                 } else {
                     dataOutputStream.writeInt(-1);

@@ -29,7 +29,9 @@ public class HTTPClient {
             Scanner scanner = new Scanner(System.in);
             String fileName;
             // Gets the request from the user
+
             String message = scanner.nextLine().trim();
+
             Scanner messageReader = new Scanner(message);
             // Gets the ip address from the user
             SERVER_ADDR = messageReader.next();
@@ -44,12 +46,19 @@ public class HTTPClient {
 
             if (!SERVER_ADDR.equals("127.0.0.1")) {
                 try {
-                    SERVER_ADDR = "https://" + SERVER_ADDR;
+                    String[] IPparts = SERVER_ADDR.split("/");
+                    String fileNameOnly = SERVER_ADDR.replace(IPparts[0], "");
+                    if(fileNameOnly.equals("")){
+                        fileNameOnly = "index.html";
+                    }
+
+                    //Checks to see if its google or not.
+
+                    SERVER_ADDR = "http://" + SERVER_ADDR + "/" + fileNameOnly;
                     URL url = new URL(SERVER_ADDR);
                     HttpURLConnection socket = (HttpURLConnection) url.openConnection();
                     socket.setRequestMethod("GET");
                     DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-                    String fileNameOnly = "index.html";
 
                     numBytes = dataInputStream.readInt();
                     if (numBytes != -1) {
@@ -70,10 +79,9 @@ public class HTTPClient {
                 } catch (MalformedURLException e) {
                     System.out.println("Error: HTTP/1.1 404 Not Found");
                 }
-            }
+            } else {
+                String fileNameOnly = "";
 
-
-            else {
                 Socket socket = new Socket(SERVER_ADDR, PORT);
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                 DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
@@ -92,12 +100,28 @@ public class HTTPClient {
                 } else {
                     fileName = "index.html";
                 }
+
                 // Sends the file name to the Server
                 printWriter.print(fileName + EOH);
                 printWriter.flush();
+                numBytes = dataInputStream.readInt();
+                if (numBytes != -1) {
+                    byte[] fileContents = new byte[numBytes];
+                    dataInputStream.read(fileContents, 0, numBytes);
+
+                    String pathToFile = currentPath.toAbsolutePath().resolve(fileNameOnly).toString();
+
+                    FileOutputStream fileOutputStream = new FileOutputStream(pathToFile);
+
+                    fileOutputStream.write(fileContents, 0, numBytes);
+
+
+                    System.out.println("Saved file: " + fileNameOnly);
+                } else {
+                    System.out.println("Error: HTTP/1.1 404 Not Found");
+                }
 
                 // Separates the file name from the file path provided (should there be one)
-                String fileNameOnly = "";
                 char[] fileNameChars = new char[fileName.length()];
                 for (int i = 0; i < fileName.length(); i++) {
                     fileNameChars[i] = fileName.charAt(i);

@@ -71,7 +71,7 @@ public class HTTPServer {
                     }
                     line  = bufferedReader.readLine();
                 }
-
+                fileName = fileName.substring(1);
 
 
                 //gets the file name from the input stream

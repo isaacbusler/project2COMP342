@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-//djlfjslk
+import java.util.Scanner;
 
 public class HTTPServer {
 
@@ -36,6 +36,7 @@ public class HTTPServer {
 
             while(true){
 
+                String fileName ="";
                 // Handles finding the correct_path
                 currentPath = Paths.get("");
                 pathToFolder = currentPath.resolve("server_folder");
@@ -48,26 +49,54 @@ public class HTTPServer {
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                 DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
 
+
+
                 // good to handle strings from stream
                 BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(dataInputStream));
                 String line = bufferedReader.readLine();
+
                 while(line != null && !line.isEmpty()){
                     System.out.println(line);
+                    if(line.startsWith("GET")){
+                        String[] parts = line.split(" ");
+                        if(parts[1].length() > 1){
+
+                            fileName = parts[1];
+
+                        } else {
+                            fileName = "index.html";
+                        }
+                    }
                     line  = bufferedReader.readLine();
                 }
 
+
+
                 //gets the file name from the input stream
-                String fileName = bufferedReader.readLine();
+                /*
+                if((line = bufferedReader.readLine()) != null){
+                    fileName = bufferedReader.readLine();
+                }
+
+                 */
                 //contents from the file stored
                 byte[] fileContents = get(fileName);
+
 
                 // If numbytes is not -1 then the file has contents
                 if (numBytes != -1) {
 
                     // Write the contents of the file to the new file
-                    dataOutputStream.writeInt(numBytes);
-                    dataOutputStream.write(fileContents, 0, numBytes);
+                    //dataOutputStream.writeInt(numBytes);
+                    PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(dataOutputStream, StandardCharsets.ISO_8859_1));
+                    printWriter.write("HTTP/1.1 200 OK" + CRLF);
+                    printWriter.write("Content-Length:" + fileContents.length + CRLF);
+                    printWriter.write("Content-Type: " + "text/html" + CRLF + EOH);
+                    String fileContentsString = new String(fileContents, StandardCharsets.ISO_8859_1);
+                    printWriter.write(fileContentsString);
+                    //dataOutputStream.writeUTF(CRLF + EOH);
 
+                    printWriter.flush();
                     // Otherwise return -1 to tell the client that the file doesn't exist
                 } else {
                     dataOutputStream.writeInt(-1);

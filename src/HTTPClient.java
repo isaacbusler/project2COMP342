@@ -105,6 +105,7 @@ public class HTTPClient {
                 printWriter.print(fileName + EOH);
                 printWriter.flush();
                 numBytes = dataInputStream.readInt();
+                System.out.println(numBytes);
                 if (numBytes != -1) {
                     byte[] fileContents = new byte[numBytes];
                     dataInputStream.read(fileContents, 0, numBytes);
@@ -133,6 +134,7 @@ public class HTTPClient {
                     }
                 }
 
+                /*
                 numBytes = dataInputStream.readInt();
                 if (numBytes != -1) {
                     byte[] fileContents = new byte[numBytes];
@@ -149,6 +151,8 @@ public class HTTPClient {
                 } else {
                     System.out.println("Error: HTTP/1.1 404 Not Found");
                 }
+
+                 */
 
                 printWriter.close();
             }

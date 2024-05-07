@@ -4,6 +4,7 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class HTTPClient {
@@ -32,9 +33,14 @@ public class HTTPClient {
             String message = scanner.nextLine().trim();
 
             Scanner messageReader = new Scanner(message);
+
+            if(messageReader.hasNext()){
+                fileName = messageReader.next();
+            } else {
+                fileName = "index.html";
+            }
             // Gets the ip address from the user
             SERVER_ADDR = messageReader.next();
-
             // TODO: receive the feedback
             System.out.println("After sending the request, wait for response: ");
 
@@ -81,45 +87,23 @@ public class HTTPClient {
             } else {
                 String fileNameOnly = "";
 
+                // The Input and Output Streams
                 Socket socket = new Socket(SERVER_ADDR, PORT);
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                 DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-
-                // generate a HTTP request a print writer, handy to handle output stream
                 PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(dataOutputStream, StandardCharsets.ISO_8859_1));
-                printWriter.print("GET / HTTP/1.1" + CRLF);
+                BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(dataInputStream));
+
+
+                // The Request
+                printWriter.print("GET " + fileName + " HTTP/1.1" + CRLF);
                 printWriter.print("Host: " + SERVER_ADDR + CRLF);
                 printWriter.print("Connection: close" + CRLF);
                 printWriter.print("Accept: */*" + EOH);
                 printWriter.flush();
 
-                // if there is no file name specified it is set to "index.html"
-                if (messageReader.hasNext()) {
-                    fileName = messageReader.next();
-                } else {
-                    fileName = "index.html";
-                }
-
-                // Sends the file name to the Server
-                printWriter.print(fileName + EOH);
-                printWriter.flush();
-                numBytes = dataInputStream.readInt();
-                System.out.println(numBytes);
-                if (numBytes != -1) {
-                    byte[] fileContents = new byte[numBytes];
-                    dataInputStream.read(fileContents, 0, numBytes);
-
-                    String pathToFile = currentPath.toAbsolutePath().resolve(fileNameOnly).toString();
-
-                    FileOutputStream fileOutputStream = new FileOutputStream(pathToFile);
-
-                    fileOutputStream.write(fileContents, 0, numBytes);
 
 
-                    System.out.println("Saved file: " + fileNameOnly);
-                } else {
-                    System.out.println("Error: HTTP/1.1 404 Not Found");
-                }
 
                 // Separates the file name from the file path provided (should there be one)
                 char[] fileNameChars = new char[fileName.length()];
@@ -132,26 +116,26 @@ public class HTTPClient {
                         fileNameOnly = "";
                     }
                 }
-
-                /*
-                numBytes = dataInputStream.readInt();
-                if (numBytes != -1) {
-                    byte[] fileContents = new byte[numBytes];
-                    dataInputStream.read(fileContents, 0, numBytes);
-
-                    String pathToFile = currentPath.toAbsolutePath().resolve(fileNameOnly).toString();
-
-                    FileOutputStream fileOutputStream = new FileOutputStream(pathToFile);
-
-                    fileOutputStream.write(fileContents, 0, numBytes);
+                // Makes the path to the file
+                String pathToFile = currentPath.toAbsolutePath().resolve(fileNameOnly).toString();
 
 
-                    System.out.println("Saved file: " + fileNameOnly);
+                String line = bufferedReader.readLine();
+                System.out.println(line);
+                // Checks to see if this is a get request
+                if(line != null){
+                    String[] header = line.split(" ");
+                    String requestType = header[1];
+                    if(requestType.equals("200")){
+                        downloadData(bufferedReader, line, pathToFile);
+                    } else {
+                        printResponse(bufferedReader, line);
+                    }
+
                 } else {
-                    System.out.println("Error: HTTP/1.1 404 Not Found");
+                    System.out.println("line is null");
                 }
 
-                 */
 
                 printWriter.close();
             }
@@ -163,7 +147,53 @@ public class HTTPClient {
         }
     }
 
+    public static void downloadData(BufferedReader reader, String line, String pathToFile){
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(pathToFile);
+            int count = 0;
+            int dataComing = 0; //
+            String fileContentsString = "";
+            while (line != null) {
+                System.out.println(line);
+                //If the next line is the data, then get filecontents
+                if (dataComing > 0) {
+                    fileContentsString = line;
+                    System.out.println(fileContentsString);
+                    byte[] fileContents = fileContentsString.getBytes(StandardCharsets.ISO_8859_1);
+                    System.out.println(Arrays.toString(fileContents));
+                    fileOutputStream.write(fileContents, 0, fileContents.length);
+                    fileOutputStream.flush();
+                }
+                //File Contents is the last thing before the Data is sent
+                if (line.isEmpty()) {
+                    System.out.println("NOW RECIEVING DATA");
+                    dataComing++;
+                }
+
+                line = reader.readLine();
+
+            }
+
+            // Writes to the file
+
+
+        }  catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void printResponse(BufferedReader reader, String line) {
+        try {
+            while (line != null && !line.isEmpty()) {
+                System.out.println(line);
+                line = reader.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
+
 
 
 
@@ -314,5 +344,4 @@ public class HTTPClient {
         }
         }
 
-        }
  */

@@ -45,12 +45,12 @@ public class HTTPClient {
 
             if (!SERVER_ADDR.equals("127.0.0.1")) {
                 try {
-                    String fileNameOnly;
-                    if(messageReader.hasNext()){
-                        fileNameOnly = messageReader.next();
-                    } else {
+                    String[] IPparts = SERVER_ADDR.split("/");
+                    String fileNameOnly = SERVER_ADDR.replace(IPparts[0], "");
+                    if(fileNameOnly.equals("")){
                         fileNameOnly = "index.html";
                     }
+
                     //Checks to see if its google or not.
 
                     SERVER_ADDR = "http://" + SERVER_ADDR + "/" + fileNameOnly;
@@ -78,8 +78,6 @@ public class HTTPClient {
                 } catch (MalformedURLException e) {
                     System.out.println("Error: HTTP/1.1 404 Not Found");
                 }
-
-
             } else {
                 String fileNameOnly = "";
 

@@ -26,7 +26,9 @@ public class HTTPServer {
     // The string version of pathToFolder
     private static String currentFolderString;
     // Holds the number of bytes send by the server or recived by the server
-    private static int numBytes;
+    private static int numBytes = 0;
+
+    private static String contentType;
 
     public static void main(String[] args){
 
@@ -80,26 +82,32 @@ public class HTTPServer {
 
                  */
                 //contents from the file stored
-                byte[] fileContents = get(fileName);
 
 
-                // If numbytes is not -1 then the file has contents
-                if (numBytes != -1) {
 
-                    // Write the contents of the file to the new file
-                    //dataOutputStream.writeInt(numBytes);
-                    PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(dataOutputStream, StandardCharsets.ISO_8859_1));
+                PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(dataOutputStream, StandardCharsets.ISO_8859_1));
+
+                if(Files.exists(pathToFolder.resolve(fileName))) {
+                    byte[] fileContents = get(fileName);
+
+                    System.out.println("we sent the message");
+                    String fileContentsString = new String(fileContents, StandardCharsets.ISO_8859_1);
                     printWriter.write("HTTP/1.1 200 OK" + CRLF);
                     printWriter.write("Content-Length:" + fileContents.length + CRLF);
-                    printWriter.write("Content-Type: " + "text/html" + CRLF + EOH);
-                    String fileContentsString = new String(fileContents, StandardCharsets.ISO_8859_1);
-                    printWriter.write(fileContentsString);
-                    //dataOutputStream.writeUTF(CRLF + EOH);
+                    printWriter.write("Content-Type: " + contentType + " " + CRLF);
+                    printWriter.write(CRLF);
 
+                    printWriter.write(fileContentsString);
                     printWriter.flush();
-                    // Otherwise return -1 to tell the client that the file doesn't exist
                 } else {
-                    dataOutputStream.writeInt(-1);
+                    String fileContentsString = "File does not exist 404";
+                    byte[] fileContents = fileContentsString.getBytes(StandardCharsets.ISO_8859_1);
+                    printWriter.write("HTTP/1.1 404 Not Found" + CRLF);
+                    printWriter.write("Content-Type: text/plain" + CRLF);
+                    printWriter.write("Content-Length:" + fileContents.length + CRLF);
+                    printWriter.write(CRLF);
+                    //printWriter.write(fileContentsString);
+                    printWriter.flush();
                 }
 
 
@@ -130,6 +138,8 @@ public class HTTPServer {
 
             // Reads the data from the file
             File file = new File(pathToFile);
+
+            contentType = Files.probeContentType(file.toPath());
             FileInputStream fileReader = new FileInputStream(pathToFile);
 
 
